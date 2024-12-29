@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cardHover, imageHover } from './animations/variants';
-import { Mail, Linkedin, Twitter, Building2 } from 'lucide-react';
+import { Mail, Linkedin, Github, Building2 } from 'lucide-react';
 
 interface AlumniCardProps {
   name: string;
@@ -11,7 +11,7 @@ interface AlumniCardProps {
   image: string;
   email: string;
   linkedin?: string;
-  twitter?: string;
+  github?: string;
 }
 
 const AlumniCard: React.FC<AlumniCardProps> = ({
@@ -22,13 +22,13 @@ const AlumniCard: React.FC<AlumniCardProps> = ({
   image,
   email,
   linkedin,
-  twitter,
+  github,
 }) => {
   const socialLinks = [
     { icon: Mail, href: `mailto:${email}`, label: 'Email' },
     { icon: Building2, href: '#', label: company },
     linkedin && { icon: Linkedin, href: linkedin, label: 'LinkedIn' },
-    twitter && { icon: Twitter, href: twitter, label: 'Twitter' },
+    github && { icon: Github, href: github, label: 'Github' },
   ].filter(Boolean);
 
   return (
@@ -60,48 +60,26 @@ const AlumniCard: React.FC<AlumniCardProps> = ({
       </motion.div>
 
       <div className="p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
-          <p className="text-gray-600 text-sm mb-1">Batch of {batch}</p>
-        </motion.div>
-
-        <motion.div
-          className="mb-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <p className="text-gray-800 font-medium">{position}</p>
-          <p className="text-gray-600">{company}</p>
-        </motion.div>
-
-        <motion.div 
-          className="flex space-x-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          {socialLinks.map((link, index) => (
+        <h3 className="text-xl font-semibold text-gray-900">{name}</h3>
+        <p className="text-gray-600 mt-1">{position}</p>
+        <p className="text-gray-500 text-sm">Batch of {batch}</p>
+        <p className="text-gray-600">{company}</p>
+        <div className="mt-4 flex gap-4">
+          {socialLinks.map((link: any, index: number) => (
             link && (
-              <motion.a
-                key={link.label}
+              <a
+                key={index}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-blue-900 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                title={link.label}
+                className="text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <link.icon className="h-5 w-5" />
-              </motion.a>
+                <link.icon size={20} />
+                <span className="sr-only">{link.label}</span>
+              </a>
             )
           ))}
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   );

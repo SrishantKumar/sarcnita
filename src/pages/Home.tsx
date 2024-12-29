@@ -3,7 +3,7 @@ import HeroSection from '../components/home/HeroSection';
 import StatsSection from '../components/home/StatsSection';
 import FeaturesSection from '../components/home/FeaturesSection';
 import { Link } from 'react-router-dom';
-import { Users, BookOpen, Mail, Building } from 'lucide-react';
+import { Users, Image, Mail, Building } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -29,11 +29,11 @@ const Home = () => {
               </div>
             </Link>
 
-            <Link to="/blog" className="group">
+            <Link to="/nitagram" className="group">
               <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <BookOpen className="h-12 w-12 text-blue-900 mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-xl font-semibold mb-2">Blog</h3>
-                <p className="text-gray-600">Stay updated with latest news and events</p>
+                <Image className="h-12 w-12 text-blue-900 mb-4 group-hover:scale-110 transition-transform duration-300" />
+                <h3 className="text-xl font-semibold mb-2">Nitagram</h3>
+                <p className="text-gray-600">Share and explore memories with our community</p>
               </div>
             </Link>
 

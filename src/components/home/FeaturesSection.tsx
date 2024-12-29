@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Users, BookOpen, Award } from 'lucide-react';
+import { GraduationCap, Users, BookOpen, Award, Image } from 'lucide-react';
 
 const features = [
   {
@@ -14,9 +14,9 @@ const features = [
     description: 'Regular meetups and conferences to build meaningful professional relationships.'
   },
   {
-    icon: BookOpen,
-    title: 'Knowledge Sharing',
-    description: 'Access to workshops, webinars, and resources from industry experts.'
+    icon: Image,
+    title: 'Nitagram',
+    description: 'Share and explore memories through our dedicated photo-sharing platform.'
   },
   {
     icon: Award,

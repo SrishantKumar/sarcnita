@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cardHover, imageHover } from './animations/variants';
-import { Mail, Linkedin, Twitter } from 'lucide-react';
+import { Mail, Linkedin, Github } from 'lucide-react';
 
 interface TeamCardProps {
   name: string;
@@ -9,7 +9,7 @@ interface TeamCardProps {
   image: string;
   email: string;
   linkedin?: string;
-  twitter?: string;
+  github?: string;
 }
 
 const TeamCard: React.FC<TeamCardProps> = ({
@@ -18,12 +18,12 @@ const TeamCard: React.FC<TeamCardProps> = ({
   image,
   email,
   linkedin,
-  twitter,
+  github,
 }) => {
   const socialLinks = [
     { icon: Mail, href: `mailto:${email}`, label: 'Email' },
     linkedin && { icon: Linkedin, href: linkedin, label: 'LinkedIn' },
-    twitter && { icon: Twitter, href: twitter, label: 'Twitter' },
+    github && { icon: Github, href: github, label: 'Github' },
   ].filter(Boolean);
 
   return (
@@ -55,46 +55,24 @@ const TeamCard: React.FC<TeamCardProps> = ({
       </motion.div>
 
       <div className="p-6">
-        <motion.h3 
-          className="text-xl font-bold text-gray-900 mb-1"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          {name}
-        </motion.h3>
-        <motion.p 
-          className="text-gray-600 mb-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          {role}
-        </motion.p>
-
-        <motion.div 
-          className="flex space-x-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          {socialLinks.map((link, index) => (
+        <h3 className="text-xl font-semibold text-gray-900">{name}</h3>
+        <p className="text-gray-600 mt-1">{role}</p>
+        <div className="mt-4 flex gap-4">
+          {socialLinks.map((link: any, index: number) => (
             link && (
-              <motion.a
-                key={link.label}
+              <a
+                key={index}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-blue-900 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                title={link.label}
+                className="text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <link.icon className="h-5 w-5" />
-              </motion.a>
+                <link.icon size={20} />
+                <span className="sr-only">{link.label}</span>
+              </a>
             )
           ))}
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   );

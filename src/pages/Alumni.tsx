@@ -8,21 +8,30 @@ const alumniList = [
     batch: "2015",
     company: "TechStart Solutions",
     position: "Founder & CEO",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+    email: "priya.mehta@techstart.com",
+    linkedin: "https://linkedin.com/in/priyamehta",
+    github: "https://github.com/priyamehta"
   },
   {
     name: "Amit Kumar",
     batch: "2010",
     company: "MIT Research Lab",
     position: "Senior Research Scientist",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=800",
+    email: "amit.kumar@mit.edu",
+    linkedin: "https://linkedin.com/in/amitkumar",
+    github: "https://github.com/amitkumar"
   },
   {
     name: "Neha Gupta",
     batch: "2018",
     company: "Google",
     position: "Senior Software Engineer",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+    email: "neha.gupta@google.com",
+    linkedin: "https://linkedin.com/in/nehagupta",
+    github: "https://github.com/nehagupta"
   }
 ];
 
@@ -89,14 +98,17 @@ const Alumni: React.FC = () => {
             variants={containerVariants}
             key={companyFilter}
           >
-            {filteredAlumni.map((alumni) => (
+            {filteredAlumni.map((alumni, index) => (
               <AlumniCard
-                key={alumni.name}
+                key={index}
                 name={alumni.name}
                 batch={alumni.batch}
                 company={alumni.company}
                 position={alumni.position}
                 image={alumni.image}
+                email={alumni.email}
+                linkedin={alumni.linkedin}
+                github={alumni.github}
               />
             ))}
           </motion.div>

@@ -120,9 +120,9 @@ const Footer: React.FC = () => {
             </motion.h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               {[
-                "Email: sarc@example.com",
+                "Email: sarc@nita.ac.in",
                 "Phone: +91 XXX XXX XXXX",
-                "Location: Your Institution Name"
+                "NIT Agartala"
               ].map((item, index) => (
                 <motion.li 
                   key={index}
