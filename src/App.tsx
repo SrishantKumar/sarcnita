@@ -9,7 +9,11 @@ import Nitagram from './pages/Nitagram';
 import Newsletter from './pages/Newsletter';
 import Alumni from './pages/Alumni';
 import Contact from './pages/Contact';
+import Auth from './pages/Auth';
+import Profile from './pages/Profile';
 import { pageTransition } from './components/animations/variants';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -26,10 +30,24 @@ const AnimatedRoutes = () => {
         <Routes location={location}>
           <Route path="/" element={<Home />} />
           <Route path="/team" element={<Team />} />
-          <Route path="/nitagram" element={<Nitagram />} />
-          <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/nitagram" element={
+            <ProtectedRoute>
+              <Nitagram />
+            </ProtectedRoute>
+          } />
+          <Route path="/newsletter" element={
+            <ProtectedRoute>
+              <Newsletter />
+            </ProtectedRoute>
+          } />
           <Route path="/alumni" element={<Alumni />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
         </Routes>
       </motion.div>
     </AnimatePresence>
@@ -38,15 +56,17 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar />
-        <main className="pt-16 flex-grow">
-          <AnimatedRoutes />
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <Navbar />
+          <main className="flex-grow">
+            <AnimatedRoutes />
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
