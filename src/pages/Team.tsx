@@ -6,7 +6,7 @@ const teamMembers = [
   {
     name: "Varun Srivastava",
     role: "General Secretary",
-    image: "https://media.licdn.com/dms/image/v2/D4E03AQGChcssJj0hyw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1707670945859?e=1741219200&v=beta&t=8nFmR-yvgZIRPtUAUyNA4WhQ2NT_QBTdbcjTHVy3Qu4?auto=format&fit=crop&q=80&w=800",
+    image: "https://i.imgur.com/a2UDovQ.jpeg?auto=format&fit=crop&q=80&w=800",
     email: "Varun@example.com",
     linkedin: "https://www.linkedin.com/in/varun-srivastava-nita/",
     github: "https://github.com"
@@ -14,7 +14,7 @@ const teamMembers = [
   {
     name: "Harish Saharan",
     role: "Assistant General Secretary",
-    image: "https://media.licdn.com/dms/image/v2/D4E03AQHfV1VmnKXdZQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1718219577244?e=1741219200&v=beta&t=d3n5ODt3qoPCMcQOMhP4YDwCcf6Zw_px_wnzDcnauA4?auto=format&fit=crop&q=80&w=800",
+    image: "https://i.imgur.com/a1dlYpE.jpeg?auto=format&fit=crop&q=80&w=800",
     email: "harish.saharan@example.com",
     linkedin: "https://www.linkedin.com/in/harish-saharan-354064257/",
     github: "https://github.com"
@@ -22,7 +22,7 @@ const teamMembers = [
   {
     name: "Kuldip Chakraborty",
     role: "Assistant General Secretary",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+    image: "https://i.imgur.com/rnr0X6W.jpeg?auto=format&fit=crop&q=80&w=800",
     email: "kuldip.chakraborty@example.com",
     linkedin: "https://www.linkedin.com/in/kuldip-chakraborty-1a8b7a253/",
     github: "https://github.com"
@@ -30,7 +30,7 @@ const teamMembers = [
   {
     name: "Akmal Hossain",
     role: "Management Head",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+    image: "https://i.imgur.com/h7InPwK.jpeg?auto=format&fit=crop&q=80&w=800",
     email: "akmal.hossain@example.com",
     linkedin: "https://www.linkedin.com/in/akmal-hossain-72a7b5277/",
     github: "https://github.com"
@@ -38,7 +38,7 @@ const teamMembers = [
   {
     name: "Anshu Pal",
     role: "Management Head",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+    image: "https://i.imgur.com/4FHcDyf.jpeg?auto=format&fit=crop&q=80&w=800",
     email: "sarah.johnson@example.com",
     linkedin: "https://www.linkedin.com/in/anshu-pal-2576292a7/",
     github: "https://github.com"
