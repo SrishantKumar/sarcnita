@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, Download, Trash2, FileText } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { Download, Plus, LogIn } from 'lucide-react';
+import { motion } from 'framer-motion';
+import CreateNewsletterModal from '../components/newsletter/CreateNewsletterModal';
+import { Link } from 'react-router-dom';
 
 interface Newsletter {
   id: string;
@@ -13,13 +16,11 @@ interface Newsletter {
 }
 
 const Newsletter: React.FC = () => {
-  const { user, isAdmin } = useAuth();
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNewsletters();
@@ -37,247 +38,155 @@ const Newsletter: React.FC = () => {
       setNewsletters(data || []);
     } catch (error) {
       console.error('Error fetching newsletters:', error);
-      alert('Failed to fetch newsletters');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
-        return;
+  const handleDownload = async (fileUrl: string) => {
+    if (!user) {
+      const shouldLogin = window.confirm('Please log in to download newsletters. Would you like to log in now?');
+      if (shouldLogin) {
+        navigate('/auth');
       }
-      setFile(selectedFile);
+      return;
     }
+    window.open(fileUrl, '_blank');
   };
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !title || !user) return;
-
+  const handleCreateNewsletter = async (title: string, description: string, file: File) => {
     try {
-      setUploading(true);
+      if (!user) return;
 
-      // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `newsletters/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('newsletters')
+      // Upload file to storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('newsletter-files')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data } = supabase.storage
-        .from('newsletters')
+      const { data: urlData } = supabase.storage
+        .from('newsletter-files')
         .getPublicUrl(filePath);
 
       // Create newsletter record
-      const { error: dbError } = await supabase.from('newsletters').insert([
-        {
-          title,
-          description,
-          file_url: data.publicUrl,
-          uploaded_by: user.id,
-        },
-      ]);
-
-      if (dbError) throw dbError;
-
-      setTitle('');
-      setDescription('');
-      setFile(null);
-      fetchNewsletters();
-      alert('Newsletter uploaded successfully!');
-    } catch (error) {
-      console.error('Error uploading newsletter:', error);
-      alert('Failed to upload newsletter');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDelete = async (id: string, fileUrl: string) => {
-    if (!isAdmin) return;
-    
-    try {
-      // Delete from storage
-      const filePath = fileUrl.split('/').pop();
-      if (filePath) {
-        await supabase.storage
-          .from('newsletters')
-          .remove([filePath]);
-      }
-
-      // Delete from database
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('newsletters')
-        .delete()
-        .eq('id', id);
+        .insert([
+          {
+            title,
+            description,
+            file_url: urlData.publicUrl,
+          },
+        ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
+      setIsCreateModalOpen(false);
       fetchNewsletters();
-      alert('Newsletter deleted successfully!');
     } catch (error) {
-      console.error('Error deleting newsletter:', error);
-      alert('Failed to delete newsletter');
-    }
-  };
-
-  const handleDownload = async (fileUrl: string, title: string) => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${title}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading newsletter:', error);
-      alert('Failed to download newsletter');
+      console.error('Error creating newsletter:', error);
     }
   };
 
   return (
-    <motion.div
-      className="min-h-screen bg-gray-50 py-24 px-4 sm:px-6 lg:px-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            SARC Newsletters
-          </h2>
-          <p className="mt-3 text-xl text-gray-500">
-            {isAdmin
-              ? 'Upload and manage newsletters'
-              : 'Download and read our latest newsletters'}
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-10">
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-blue-900">SARC Newsletters</h1>
         </div>
+      </div>
 
-        {isAdmin && (
-          <div className="max-w-2xl mx-auto mb-12 bg-white p-6 rounded-lg shadow-md">
-            <form onSubmit={handleUpload} className="space-y-4">
+      {/* Main Content with proper padding for fixed header */}
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
+                <h2 className="text-xl font-semibold text-gray-900">Latest Newsletters</h2>
+                <p className="text-gray-600 mt-1">Stay updated with our latest news and announcements</p>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  File (PDF, max 10MB)
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  className="mt-1 block w-full"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={uploading || !file || !title}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {uploading ? (
-                  'Uploading...'
-                ) : (
-                  <>
-                    <Upload className="w-5 h-5 mr-2" />
-                    Upload Newsletter
-                  </>
-                )}
-              </button>
-            </form>
+              {profile?.role === 'admin' && (
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors whitespace-nowrap"
+                >
+                  <Plus className="h-5 w-5" />
+                  Create Newsletter
+                </button>
+              )}
+            </div>
           </div>
-        )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {loading ? (
-            <div className="col-span-full flex justify-center">
+            <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
             </div>
           ) : newsletters.length === 0 ? (
-            <div className="col-span-full text-center text-gray-500">
-              No newsletters available
+            <div className="text-center py-12 bg-white rounded-xl shadow-md">
+              <p className="text-gray-500">No newsletters available</p>
             </div>
           ) : (
-            newsletters.map((newsletter) => (
-              <div
-                key={newsletter.id}
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <FileText className="w-8 h-8 text-blue-900" />
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDelete(newsletter.id, newsletter.file_url)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">
-                    {newsletter.title}
-                  </h3>
-                  {newsletter.description && (
-                    <p className="mt-2 text-sm text-gray-500">
-                      {newsletter.description}
-                    </p>
-                  )}
-                  <p className="mt-2 text-xs text-gray-400">
-                    {new Date(newsletter.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDownload(newsletter.file_url, newsletter.title)}
-                  className="mt-4 flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {newsletters.map((newsletter) => (
+                <motion.div
+                  key={newsletter.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <Download className="w-5 h-5 mr-2" />
-                  Download
-                </button>
-              </div>
-            ))
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {newsletter.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{newsletter.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">
+                        {new Date(newsletter.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                      {user ? (
+                        <button
+                          onClick={() => handleDownload(newsletter.file_url)}
+                          className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                        >
+                          <Download className="h-5 w-5" />
+                          Download
+                        </button>
+                      ) : (
+                        <Link
+                          to="/auth"
+                          className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                        >
+                          <LogIn className="h-5 w-5" />
+                          Login to Download
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           )}
         </div>
       </div>
-    </motion.div>
+
+      {isCreateModalOpen && (
+        <CreateNewsletterModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreate={handleCreateNewsletter}
+        />
+      )}
+    </div>
   );
 };
 

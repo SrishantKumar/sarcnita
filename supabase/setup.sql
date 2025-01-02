@@ -106,93 +106,82 @@ create policy "Users can update own profile"
   using ( auth.uid() = id );
 
 -- Create policies for posts
-create policy "Allow public read access"
-on posts for select
-to public
-using (true);
+CREATE POLICY "Public can view posts"
+ON posts FOR SELECT
+TO public
+USING (true);
 
-create policy "Allow authenticated users to create posts"
-on posts for insert
-to authenticated
-with check (auth.uid() = user_id);
+CREATE POLICY "Authenticated users can create posts"
+ON posts FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
 
-create policy "Allow users to update their own posts"
-on posts for update
-to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+CREATE POLICY "Users can update their own posts"
+ON posts FOR UPDATE
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
-create policy "Allow users to delete their own posts"
-on posts for delete
-to authenticated
-using (auth.uid() = user_id);
-
-create policy "Allow admins to delete any post"
-on posts for delete
-to authenticated
-using (
-  auth.uid() in (
-    select id from profiles
-    where role = 'admin'
-  )
-);
+CREATE POLICY "Users can delete their own posts"
+ON posts FOR DELETE
+TO authenticated
+USING (auth.uid() = user_id);
 
 -- Create policies for comments
-create policy "Comments are viewable by everyone"
-  on comments for select
-  using ( true );
+CREATE POLICY "Public can view comments"
+ON comments FOR SELECT
+TO public
+USING (true);
 
-create policy "Authenticated users can create comments"
-  on comments for insert
-  with check ( auth.role() = 'authenticated' );
+CREATE POLICY "Authenticated users can create comments"
+ON comments FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
 
-create policy "Users can update own comments"
-  on comments for update
-  using ( auth.uid() = user_id );
+CREATE POLICY "Users can update their own comments"
+ON comments FOR UPDATE
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
-create policy "Users can delete own comments or if admin"
-  on comments for delete
-  using (
-    auth.uid() = user_id or
-    exists (
-      select 1 from profiles
-      where profiles.id = auth.uid()
-      and profiles.role = 'admin'
-    )
-  );
+CREATE POLICY "Users can delete their own comments"
+ON comments FOR DELETE
+TO authenticated
+USING (auth.uid() = user_id);
 
 -- Create policies for likes
-create policy "Likes are viewable by everyone"
-  on likes for select
-  using ( true );
+CREATE POLICY "Public can view likes"
+ON likes FOR SELECT
+TO public
+USING (true);
 
-create policy "Authenticated users can create likes"
-  on likes for insert
-  with check ( auth.role() = 'authenticated' );
-
-create policy "Users can delete own likes"
-  on likes for delete
-  using ( auth.uid() = user_id );
+CREATE POLICY "Authenticated users can manage their likes"
+ON likes FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
 -- Create policies for newsletters
-create policy "Allow public read access"
-on newsletters for select
-to public
-using (true);
+CREATE POLICY "Public can view newsletters"
+ON newsletters FOR SELECT
+TO public
+USING (true);
 
-create policy "Allow admin to manage newsletters"
-on newsletters for all
-to authenticated
-using (
-  auth.uid() in (
-    select id from profiles
-    where role = 'admin'
+CREATE POLICY "Only admins can manage newsletters"
+ON newsletters FOR ALL
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.role = 'admin'
   )
 )
-with check (
-  auth.uid() in (
-    select id from profiles
-    where role = 'admin'
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.role = 'admin'
   )
 );
 

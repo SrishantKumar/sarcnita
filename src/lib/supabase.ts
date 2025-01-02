@@ -9,42 +9,33 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
     autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: true
   }
 });
 
-// Add error logging
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Supabase auth event:', event);
-  if (event === 'SIGNED_OUT') {
-    console.log('User signed out');
-  } else if (event === 'SIGNED_IN') {
-    console.log('User signed in:', session?.user?.id);
-  }
-});
-
-export type UserRole = 'admin' | 'student';
-
+// Custom types for better TypeScript support
 export interface Profile {
   id: string;
   username: string;
-  full_name: string;
-  role: UserRole;
-  avatar_url?: string;
-  created_at: string;
+  avatar_url: string | null;
+  role: 'admin' | 'student';
 }
 
 export interface Post {
   id: string;
   user_id: string;
   content: string;
-  media_url?: string;
-  media_type?: 'image' | 'video';
-  likes_count: number;
-  comments_count: number;
+  media_url: string | null;
+  media_type: 'image' | 'video' | null;
   created_at: string;
+  space?: string;
+  profiles?: Profile;
+  likes?: { user_id: string }[];
+  likes_count?: number;
+  comments?: Comment[];
+  comments_count?: number;
 }
 
 export interface Comment {
@@ -52,5 +43,21 @@ export interface Comment {
   post_id: string;
   user_id: string;
   content: string;
+  created_at: string;
+  profiles?: Profile;
+}
+
+export interface Like {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface Newsletter {
+  id: string;
+  title: string;
+  description: string;
+  file_url: string;
   created_at: string;
 }

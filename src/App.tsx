@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import { pageTransition } from './components/animations/variants';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -31,14 +32,14 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<Home />} />
           <Route path="/team" element={<Team />} />
           <Route path="/nitagram" element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Nitagram />
-            </ProtectedRoute>
+            </PublicRoute>
           } />
           <Route path="/newsletter" element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Newsletter />
-            </ProtectedRoute>
+            </PublicRoute>
           } />
           <Route path="/alumni" element={<Alumni />} />
           <Route path="/contact" element={<Contact />} />
