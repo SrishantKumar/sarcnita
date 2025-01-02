@@ -24,14 +24,14 @@ const alumniList = [
     github: "https://github.com/amitkumar"
   },
   {
-    name: "Neha Gupta",
+    name: "Srishant Kumar",
     batch: "2018",
     company: "Google",
     position: "Senior Software Engineer",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
-    email: "neha.gupta@google.com",
-    linkedin: "https://linkedin.com/in/nehagupta",
-    github: "https://github.com/nehagupta"
+    image: "https://i.imgur.com/CC0IGFA.jpeg?auto=format&fit=crop&q=80&w=800",
+    email: "srishant.kumar@google.com",
+    linkedin: "https://linkedin.com/in/iamsrishant",
+    github: "https://github.com/srishant"
   }
 ];
 
