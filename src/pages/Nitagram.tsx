@@ -38,6 +38,21 @@ const Nitagram: React.FC = () => {
     await addComment(postId, content);
   };
 
+  const handleDelete = async (postId: string, postUserId: string) => {
+    if (!user) return;
+    if (user.id !== postUserId && profile?.role !== 'admin') return;
+
+    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
+    if (!confirmDelete) return;
+
+    try {
+      await deletePost(postId);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
   const filteredPosts = posts
     .filter(post => {
       if (!searchQuery) return true;
@@ -171,7 +186,7 @@ const Nitagram: React.FC = () => {
                       post={post}
                       onLike={handleLike}
                       onComment={handleComment}
-                      onDelete={profile?.role === 'admin' ? deletePost : undefined}
+                      onDelete={handleDelete}
                       currentUser={user}
                     />
                   </motion.div>

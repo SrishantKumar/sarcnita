@@ -64,10 +64,11 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-        {onDelete && (
+        {currentUser && onDelete && (currentUser.id === post.user_id) && (
           <button
             onClick={() => onDelete(post.id, post.user_id)}
-            className="text-red-500 hover:text-red-700"
+            className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+            title="Delete post"
           >
             <Trash2 className="h-5 w-5" />
           </button>
