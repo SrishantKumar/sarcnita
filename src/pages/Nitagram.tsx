@@ -185,7 +185,7 @@ const Nitagram: React.FC = () => {
       {isCreatePostOpen && (
         <CreatePostModal
           onClose={() => setIsCreatePostOpen(false)}
-          onCreate={createPost}
+          onCreatePost={createPost}
         />
       )}
     </div>

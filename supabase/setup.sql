@@ -57,7 +57,8 @@ alter table newsletters enable row level security;
 
 -- Create bucket for media files
 insert into storage.buckets (id, name)
-values ('nitagram-media', 'nitagram-media')
+values ('nitagram-media', 'nitagram-media'),
+       ('newsletter-files', 'newsletter-files')
 on conflict (id) do nothing;
 
 -- Enable RLS on storage
@@ -188,13 +189,18 @@ WITH CHECK (
 -- Create storage policies
 create policy "Media files are publicly accessible"
   on storage.objects for select
-  using ( bucket_id = 'nitagram-media' );
+  using ( bucket_id = 'nitagram-media' OR bucket_id = 'newsletter-files' );
 
 create policy "Any authenticated user can upload media"
   on storage.objects for insert
   with check (
     auth.role() = 'authenticated' and
-    bucket_id = 'nitagram-media'
+    (bucket_id = 'nitagram-media' OR 
+     (bucket_id = 'newsletter-files' AND EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )))
   );
 
 create policy "Users can update own media"
@@ -372,9 +378,6 @@ select ensure_admin_user('admin@sarcnita.com');
 
 -- Storage setup
 insert into storage.buckets (id, name, public)
-values ('nitagram-media', 'nitagram-media', true)
-on conflict (id) do nothing;
-
-insert into storage.buckets (id, name, public)
-values ('newsletters', 'newsletters', true)
+values ('nitagram-media', 'nitagram-media', true),
+       ('newsletter-files', 'newsletter-files', true)
 on conflict (id) do nothing;
