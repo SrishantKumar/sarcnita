@@ -61,6 +61,20 @@ const Profile: React.FC = () => {
 
       if (!user) throw new Error('No user');
 
+      // Check if username is unique if it's being updated
+      if (updates.username && updates.username !== profile?.username) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', updates.username)
+          .neq('id', user.id)
+          .single();
+
+        if (existingUser) {
+          throw new Error('Username already taken');
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -71,7 +85,11 @@ const Profile: React.FC = () => {
       await refreshProfile();
       alert('Profile updated successfully!');
     } catch (error) {
-      alert('Error updating profile!');
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Error updating profile!');
+      }
       console.error(error);
     } finally {
       setLoading(false);
