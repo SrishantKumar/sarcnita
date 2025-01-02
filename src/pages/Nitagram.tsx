@@ -188,6 +188,7 @@ const Nitagram: React.FC = () => {
                       onComment={handleComment}
                       onDelete={handleDelete}
                       currentUser={user}
+                      profile={profile}
                     />
                   </motion.div>
                 ))}

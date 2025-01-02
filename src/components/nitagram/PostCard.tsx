@@ -11,6 +11,7 @@ interface PostCardProps {
   onLike: (postId: string) => Promise<void>;
   onComment: (postId: string, content: string) => Promise<void>;
   onDelete?: (postId: string, userId: string) => Promise<void>;
+  profile: any;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -19,6 +20,7 @@ const PostCard: React.FC<PostCardProps> = ({
   onLike,
   onComment,
   onDelete,
+  profile,
 }) => {
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -64,11 +66,11 @@ const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-        {currentUser && onDelete && (currentUser.id === post.user_id) && (
+        {currentUser && onDelete && (currentUser.id === post.user_id || profile?.role === 'admin') && (
           <button
             onClick={() => onDelete(post.id, post.user_id)}
             className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
-            title="Delete post"
+            title={currentUser.id === post.user_id ? "Delete your post" : "Delete as admin"}
           >
             <Trash2 className="h-5 w-5" />
           </button>
