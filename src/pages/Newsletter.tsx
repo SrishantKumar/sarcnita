@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Download, Plus, LogIn } from 'lucide-react';
+import { Download, Plus, LogIn, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateNewsletterModal from '../components/newsletter/CreateNewsletterModal';
 import { Link } from 'react-router-dom';
@@ -19,6 +19,7 @@ const Newsletter: React.FC = () => {
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
@@ -54,13 +55,51 @@ const Newsletter: React.FC = () => {
     window.open(fileUrl, '_blank');
   };
 
+  const handleDelete = async (newsletterId: string, fileUrl: string) => {
+    try {
+      if (!profile?.role === 'admin') return;
+      
+      const confirmDelete = window.confirm('Are you sure you want to delete this newsletter?');
+      if (!confirmDelete) return;
+
+      setDeleteLoading(newsletterId);
+
+      // Extract file path from URL
+      const filePath = fileUrl.split('/').pop();
+      if (!filePath) throw new Error('Invalid file URL');
+
+      // Delete file from storage
+      const { error: storageError } = await supabase.storage
+        .from('newsletter-files')
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Delete newsletter record
+      const { error: dbError } = await supabase
+        .from('newsletters')
+        .delete()
+        .eq('id', newsletterId);
+
+      if (dbError) throw dbError;
+
+      // Update local state
+      setNewsletters(newsletters.filter(n => n.id !== newsletterId));
+    } catch (error) {
+      console.error('Error deleting newsletter:', error);
+      alert('Failed to delete newsletter. Please try again.');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
   const handleCreateNewsletter = async (title: string, description: string, file: File) => {
     try {
       if (!user) return;
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `newsletters/${fileName}`;
+      const filePath = `${fileName}`;
 
       // Upload file to storage
       const { error: uploadError, data } = await supabase.storage
@@ -82,6 +121,7 @@ const Newsletter: React.FC = () => {
             title,
             description,
             file_url: urlData.publicUrl,
+            uploaded_by: user.id
           },
         ]);
 
@@ -91,6 +131,7 @@ const Newsletter: React.FC = () => {
       fetchNewsletters();
     } catch (error) {
       console.error('Error creating newsletter:', error);
+      alert('Failed to create newsletter. Please try again.');
     }
   };
 
@@ -154,23 +195,38 @@ const Newsletter: React.FC = () => {
                           day: 'numeric'
                         })}
                       </span>
-                      {user ? (
-                        <button
-                          onClick={() => handleDownload(newsletter.file_url)}
-                          className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
-                        >
-                          <Download className="h-5 w-5" />
-                          Download
-                        </button>
-                      ) : (
-                        <Link
-                          to="/auth"
-                          className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
-                        >
-                          <LogIn className="h-5 w-5" />
-                          Login to Download
-                        </Link>
-                      )}
+                      <div className="flex gap-2">
+                        {user ? (
+                          <button
+                            onClick={() => handleDownload(newsletter.file_url)}
+                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                          >
+                            <Download className="h-5 w-5" />
+                            Download
+                          </button>
+                        ) : (
+                          <Link
+                            to="/auth"
+                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                          >
+                            <LogIn className="h-5 w-5" />
+                            Login to Download
+                          </Link>
+                        )}
+                        {profile?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDelete(newsletter.id, newsletter.file_url)}
+                            disabled={deleteLoading === newsletter.id}
+                            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                          >
+                            {deleteLoading === newsletter.id ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                            ) : (
+                              <Trash2 className="h-5 w-5" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
