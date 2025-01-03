@@ -173,7 +173,7 @@ const PostCard: React.FC<PostCardProps> = ({
               <div className="bg-blue-50 p-3 rounded-lg text-center">
                 <p className="text-blue-900 mb-2">Log in to join the conversation!</p>
                 <Link
-                  to="/login"
+                  to="/auth"
                   className="inline-flex items-center justify-center bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
                 >
                   Log In to Comment

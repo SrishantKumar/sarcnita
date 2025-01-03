@@ -180,26 +180,27 @@ const Newsletter: React.FC = () => {
                   key={newsletter.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
                       {newsletter.title}
                     </h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3">{newsletter.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
+                    <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">{newsletter.description}</p>
+                    
+                    <div className="mt-auto space-y-4">
+                      <span className="text-sm text-gray-500 block">
                         {new Date(newsletter.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
                         })}
                       </span>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {user ? (
                           <button
                             onClick={() => handleDownload(newsletter.file_url)}
-                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors w-full justify-center"
                           >
                             <Download className="h-5 w-5" />
                             Download
@@ -207,7 +208,7 @@ const Newsletter: React.FC = () => {
                         ) : (
                           <Link
                             to="/auth"
-                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors w-full justify-center"
                           >
                             <LogIn className="h-5 w-5" />
                             Login to Download

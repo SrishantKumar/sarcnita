@@ -58,40 +58,42 @@ const Team: React.FC = () => {
   };
 
   return (
-    <motion.div 
-      className="py-16 px-4 sm:px-6 lg:px-8"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className="max-w-7xl mx-auto">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl font-bold text-gray-900">Our Team</h1>
-          <p className="mt-4 text-xl text-gray-600">Meet the dedicated individuals driving SARC forward</p>
-        </motion.div>
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          variants={containerVariants}
-        >
-          {teamMembers.map((member, index) => (
-            <TeamCard
-              key={index}
-              name={member.name}
-              role={member.role}
-              image={member.image}
-              email={member.email}
-              linkedin={member.linkedin}
-              github={member.github}
-            />
-          ))}
-        </motion.div>
-      </div>
-    </motion.div>
+    <div className="min-h-screen bg-gray-50">
+      <motion.div 
+        className="pt-24 xs:pt-28 sm:pt-32 pb-16 px-3 xs:px-4 sm:px-6 lg:px-8"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">Our Team</h1>
+            <p className="mt-2 text-base xs:text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">Meet the dedicated individuals driving SARC forward</p>
+          </motion.div>
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 xs:gap-6 sm:gap-8"
+            variants={containerVariants}
+          >
+            {teamMembers.map((member, index) => (
+              <TeamCard
+                key={index}
+                name={member.name}
+                role={member.role}
+                image={member.image}
+                email={member.email}
+                linkedin={member.linkedin}
+                github={member.github}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, TrendingUp, Clock, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PostCard from '../components/nitagram/PostCard';
 import CreatePostModal from '../components/nitagram/CreatePostModal';
 import { fadeInUp } from '../components/animations/variants';
@@ -11,6 +11,7 @@ import { Post } from '../lib/supabase';
 
 const Nitagram: React.FC = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { posts, loading, error, createPost, deletePost, likePost, addComment } = useNitagramPosts();
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'trending' | 'recent'>('recent');
@@ -20,7 +21,7 @@ const Nitagram: React.FC = () => {
     if (!user) {
       const shouldLogin = window.confirm('Please log in to like posts. Would you like to log in now?');
       if (shouldLogin) {
-        window.location.href = '/auth';
+        navigate('/auth');
       }
       return;
     }
@@ -31,7 +32,7 @@ const Nitagram: React.FC = () => {
     if (!user) {
       const shouldLogin = window.confirm('Please log in to comment on posts. Would you like to log in now?');
       if (shouldLogin) {
-        window.location.href = '/auth';
+        navigate('/auth');
       }
       return;
     }
