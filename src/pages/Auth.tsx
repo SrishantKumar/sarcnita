@@ -37,7 +37,7 @@ const Auth: React.FC = () => {
               alt="SARC Logo" 
               className="h-24 mx-auto mb-6"
             />
-            <h1 className="text-4xl font-bold text-blue-900 mb-4">
+            <h1 className="text-4xl font-bold text-blue-900 mb-4 whitespace-nowrap">
               Student Alumni Relations Cell
             </h1>
             <p className="text-lg text-gray-600 mb-8">
