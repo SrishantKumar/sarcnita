@@ -153,7 +153,7 @@ const Navbar: React.FC = () => {
                           className="w-10 h-10 rounded-xl object-cover ring-2 ring-blue-500 ring-offset-2"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center ring-2 ring-blue-500 ring-offset-2">
+                        <div className="w-10 h-10 rounded-xl bg-[#1a355c] flex items-center justify-center ring-2 ring-blue-500 ring-offset-2">
                           <User className="w-6 h-6 text-white" />
                         </div>
                       )}

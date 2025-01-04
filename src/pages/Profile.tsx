@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
-import { User, Camera } from 'lucide-react';
+import { User, Camera, X } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -20,6 +20,45 @@ const Profile: React.FC = () => {
     }
   }, [profile]);
 
+  const removeAvatar = async () => {
+    try {
+      setLoading(true);
+      if (!user) throw new Error('No user');
+
+      // If there's an existing avatar, delete it from storage
+      if (avatarUrl) {
+        const fileName = avatarUrl.split('/').pop();
+        if (fileName) {
+          const filePath = `${user.id}/${fileName}`;
+          const { error: deleteError } = await supabase.storage
+            .from('nitagram-media')
+            .remove([filePath]);
+
+          if (deleteError) {
+            console.error('Error deleting avatar from storage:', deleteError);
+          }
+        }
+      }
+
+      // Update profile to remove avatar_url
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl('');
+      await refreshProfile();
+      alert('Avatar removed successfully!');
+    } catch (error) {
+      console.error('Error removing avatar:', error);
+      alert('Error removing avatar!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true);
@@ -32,6 +71,17 @@ const Profile: React.FC = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user?.id}/${fileName}`;
+
+      // Delete existing avatar if there is one
+      if (avatarUrl) {
+        const oldFileName = avatarUrl.split('/').pop();
+        if (oldFileName) {
+          const oldFilePath = `${user?.id}/${oldFileName}`;
+          await supabase.storage
+            .from('nitagram-media')
+            .remove([oldFilePath]);
+        }
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('nitagram-media')
@@ -55,7 +105,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const updateProfile = async (updates: { username?: string; full_name?: string; avatar_url?: string }) => {
+  const updateProfile = async (updates: { username?: string; full_name?: string; avatar_url?: string | null }) => {
     try {
       setLoading(true);
 
@@ -118,11 +168,23 @@ const Profile: React.FC = () => {
           <div className="flex flex-col items-center mb-8">
             <div className="relative">
               {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="w-32 h-32 rounded-full object-cover"
-                />
+                <div className="relative group">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-32 h-32 rounded-full object-cover"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={removeAvatar}
+                    disabled={loading}
+                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove avatar"
+                  >
+                    <X className="w-4 h-4" />
+                  </motion.button>
+                </div>
               ) : (
                 <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
                   <User className="w-16 h-16 text-gray-400" />
@@ -130,7 +192,7 @@ const Profile: React.FC = () => {
               )}
               <label
                 htmlFor="avatar"
-                className="absolute bottom-0 right-0 bg-blue-900 text-white p-2 rounded-full cursor-pointer hover:bg-blue-800 transition-colors"
+                className="absolute bottom-0 right-0 bg-[#1a355c] text-white p-2 rounded-full cursor-pointer hover:bg-[#234672] transition-colors"
               >
                 <Camera className="w-5 h-5" />
                 <input
@@ -138,13 +200,16 @@ const Profile: React.FC = () => {
                   id="avatar"
                   accept="image/*"
                   onChange={uploadAvatar}
-                  disabled={uploading}
+                  disabled={uploading || loading}
                   className="hidden"
                 />
               </label>
             </div>
             {uploading && (
               <p className="mt-2 text-sm text-gray-600">Uploading...</p>
+            )}
+            {loading && !uploading && (
+              <p className="mt-2 text-sm text-gray-600">Updating...</p>
             )}
           </div>
 
