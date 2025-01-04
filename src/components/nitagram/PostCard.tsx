@@ -5,6 +5,7 @@ import { Post } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import LoginPromptModal from './LoginPromptModal';
+import CustomVideoPlayer from './CustomVideoPlayer';
 
 interface PostCardProps {
   post: Post;
@@ -122,12 +123,7 @@ const PostCard: React.FC<PostCardProps> = ({
                 loading="lazy"
               />
             ) : (
-              <video
-                src={post.media_url}
-                controls
-                className="w-full h-auto"
-                preload="metadata"
-              />
+              <CustomVideoPlayer url={post.media_url} />
             )}
           </div>
         )}
