@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Linkedin, Instagram, Twitter, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   // Animation variants
@@ -95,13 +96,12 @@ const Footer: React.FC = () => {
                   whileHover={{ x: 10 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <motion.a 
-                    href={link.href} 
+                  <Link 
+                    to={link.href} 
                     className="text-gray-400 hover:text-white text-sm inline-block"
-                    whileHover={{ color: "#ffffff" }}
                   >
                     {link.text}
-                  </motion.a>
+                  </Link>
                 </motion.li>
               ))}
             </ul>
