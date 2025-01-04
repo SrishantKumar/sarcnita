@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Linkedin, Instagram, Twitter, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
@@ -134,7 +134,7 @@ const Footer: React.FC = () => {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Phone size={16} />
-                <span>+91 XXX XXX XXXX</span>
+                <span>+91 8827569820</span>
               </motion.li>
               <motion.li 
                 className="flex items-center gap-2"
@@ -164,9 +164,9 @@ const Footer: React.FC = () => {
               variants={itemVariants}
             >
               {[
-                { icon: Linkedin, name: "LinkedIn", href: "https://www.linkedin.com" },
-                { icon: Instagram, name: "Instagram", href: "https://www.instagram.com" },
-                { icon: Twitter, name: "Twitter", href: "https://twitter.com" }
+                { icon: Linkedin, name: "LinkedIn", href: "https://www.linkedin.com/company/student-alumni-relation-cell-sarc/" },
+                { icon: Instagram, name: "Instagram", href: "https://www.instagram.com/sarc_nita/" },
+                
               ].map((social) => (
                 <motion.a
                   key={social.name}

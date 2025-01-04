@@ -1,44 +1,19 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
     message: ''
   });
 
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Add your form submission logic here
-    setStatus('success');
-    setTimeout(() => setStatus('idle'), 3000);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5
-      }
-    }
+    console.log('Form submitted:', formData);
+    setFormData({ name: '', email: '', message: '' });
   };
 
   const contactInfo = [
@@ -51,125 +26,137 @@ const Contact: React.FC = () => {
     {
       icon: <Phone className="h-6 w-6" />,
       title: "Phone",
-      content: "+91 123 456 7890",
-      link: "tel:+911234567890"
+      content: "+91 8827569820",
+      link: "tel:+918827569820"
     },
     {
       icon: <MapPin className="h-6 w-6" />,
-      title: "Address",
-      content: "NIT Agartala, Barjala, Jirania, Tripura, India",
+      title: "Location",
+      content: "NIT Agartala, Tripura, India",
       link: "https://maps.google.com/?q=NIT+Agartala"
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
+
+  const formVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        delay: 0.3
+      }
+    }
+  };
+
   return (
-    <motion.div
-      className="min-h-screen bg-gray-50 py-24 px-4 sm:px-6 lg:px-8"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className="max-w-7xl mx-auto">
-        <motion.div 
-          className="text-center mb-16"
-          variants={itemVariants}
+    <div className="min-h-screen bg-gray-50 pt-28 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
-          <p className="text-xl text-gray-600">
-            Have questions? We'd love to hear from you.
+          <h1 className="text-4xl font-bold text-[#1a355c] mb-4">Get in Touch</h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Have questions or want to connect? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <motion.div 
-            className="lg:col-span-2 bg-white rounded-xl shadow-lg p-8"
-            variants={itemVariants}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Contact Form */}
+          <motion.div
+            variants={formVariants}
+            initial="hidden"
+            animate="visible"
+            className="bg-white rounded-2xl shadow-lg p-8"
           >
-            <h2 className="text-2xl font-semibold mb-6">Send us a Message</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <MessageSquare className="h-6 w-6 text-[#1a355c]" />
+              <h2 className="text-2xl font-semibold text-[#1a355c]">Send Message</h2>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </motion.div>
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </motion.div>
-              </div>
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject
-                </label>
+              <motion.div
+                whileTap={{ scale: 0.995 }}
+                className="group"
+              >
                 <input
                   type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Your Name"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1a355c] focus:ring-2 focus:ring-[#1a355c] focus:ring-opacity-20 transition-all outline-none"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
+              <motion.div
+                whileTap={{ scale: 0.995 }}
+                className="group"
+              >
+                <input
+                  type="email"
+                  placeholder="Your Email"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1a355c] focus:ring-2 focus:ring-[#1a355c] focus:ring-opacity-20 transition-all outline-none"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </motion.div>
+              <motion.div
+                whileTap={{ scale: 0.995 }}
+                className="group"
+              >
                 <textarea
+                  placeholder="Your Message"
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#1a355c] focus:ring-2 focus:ring-[#1a355c] focus:ring-opacity-20 transition-all outline-none resize-none"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <motion.button
-                  type="submit"
-                  className="w-full px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors duration-300 flex items-center justify-center space-x-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span>Send Message</span>
-                  <Send className="h-5 w-5" />
-                </motion.button>
-              </motion.div>
-            </form>
-            {status !== 'idle' && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`mt-4 p-4 rounded-lg ${
-                  status === 'success' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-[#1a355c] text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-opacity-90 transition-colors"
               >
-                {status === 'success' 
-                  ? '✓ Message sent successfully!' 
-                  : '× Something went wrong. Please try again.'}
-              </motion.div>
-            )}
+                <Send className="h-5 w-5" />
+                Send Message
+              </motion.button>
+            </form>
           </motion.div>
 
-          <motion.div 
-            className="space-y-6"
-            variants={itemVariants}
+          {/* Contact Information */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-6"
           >
             {contactInfo.map((info, index) => (
               <motion.a
@@ -177,26 +164,43 @@ const Contact: React.FC = () => {
                 href={info.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+                variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                variants={itemVariants}
+                className="bg-white p-6 rounded-2xl shadow-lg flex items-start gap-4 group transition-all hover:shadow-xl"
               >
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-blue-100 rounded-lg text-blue-900">
+                <div className="p-3 rounded-xl bg-[#1a355c] bg-opacity-5 group-hover:bg-opacity-10 transition-all">
+                  <div className="text-[#1a355c]">
                     {info.icon}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{info.title}</h3>
-                    <p className="text-gray-600 mt-1">{info.content}</p>
-                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-[#1a355c] mb-1">{info.title}</h3>
+                  <p className="text-gray-600">{info.content}</p>
                 </div>
               </motion.a>
             ))}
+
+            {/* Map */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-white p-6 rounded-2xl shadow-lg"
+            >
+              <div className="aspect-w-16 aspect-h-9">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3642.499978087411!2d91.42608731541383!3d24.076751184418795!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375178c3c5c40329%3A0x7e974dea38c2c8e8!2sNational%20Institute%20of%20Technology%20Agartala!5e0!3m2!1sen!2sin!4v1675863187890!5m2!1sen!2sin"
+                  className="w-full h-full rounded-lg"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

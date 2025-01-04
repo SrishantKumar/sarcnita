@@ -63,34 +63,51 @@ export const slideInFromRight: Variants = {
   }
 };
 
+export const cardHover: Variants = {
+  initial: { scale: 1 },
+  hover: {
+    scale: 1.02,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 15
+    }
+  },
+  tap: { scale: 0.98 }
+};
+
+export const imageHover: Variants = {
+  initial: { scale: 1 },
+  hover: {
+    scale: 1.1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 15
+    }
+  }
+};
+
 export const pageTransition: Variants = {
-  initial: { opacity: 0, y: 20 },
+  initial: {
+    opacity: 0,
+    y: 20
+  },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5,
-      ease: [0.645, 0.045, 0.355, 1]
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+      duration: 0.3
     }
   },
   exit: {
     opacity: 0,
     y: -20,
     transition: {
-      duration: 0.3
-    }
-  }
-};
-
-export const cardHover: Variants = {
-  initial: { scale: 1, y: 0 },
-  hover: {
-    scale: 1.03,
-    y: -5,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 10
+      duration: 0.2
     }
   }
 };
@@ -116,17 +133,6 @@ export const rotateOnHover: Variants = {
     transition: {
       duration: 0.8,
       ease: "easeInOut"
-    }
-  }
-};
-
-export const imageHover: Variants = {
-  initial: { scale: 1, filter: "brightness(100%)" },
-  hover: {
-    scale: 1.1,
-    filter: "brightness(110%)",
-    transition: {
-      duration: 0.3
     }
   }
 };
