@@ -23,7 +23,7 @@ export const alumniData: AlumniType[] = [
     github: "https://github.com/SrishantKumar"
   },
   {
-    "name": "Aryan Reddy",
+    "name": "Akmal Hossain",
     "batch": "2025",
     "company": "Oracle",
     "position": "Data Scientist",
