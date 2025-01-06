@@ -28,6 +28,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState<'like' | 'comment' | null>(null);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +55,18 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const isLiked = currentUser && post.likes?.some(like => like.user_id === currentUser.id);
+
+  const nextMedia = () => {
+    if (post.media && currentMediaIndex < post.media.length - 1) {
+      setCurrentMediaIndex(prev => prev + 1);
+    }
+  };
+
+  const previousMedia = () => {
+    if (currentMediaIndex > 0) {
+      setCurrentMediaIndex(prev => prev - 1);
+    }
+  };
 
   return (
     <>
@@ -108,25 +121,62 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         {/* Post Content */}
-        <div className="px-4 py-3">
-          <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
-        </div>
+        <div className="p-4">
+          <p className="text-gray-800 whitespace-pre-wrap mb-4">{post.content}</p>
 
-        {/* Post Media */}
-        {post.media_url && (
-          <div className="relative">
-            {post.media_type === 'image' ? (
-              <img
-                src={post.media_url}
-                alt="Post media"
-                className="w-full h-auto"
-                loading="lazy"
-              />
-            ) : (
-              <CustomVideoPlayer url={post.media_url} />
-            )}
-          </div>
-        )}
+          {/* Media Content */}
+          {post.media && post.media.length > 0 && (
+            <div className="relative">
+              <div className="relative aspect-video">
+                {post.media[currentMediaIndex].media_type === 'image' ? (
+                  <img
+                    src={post.media[currentMediaIndex].media_url}
+                    alt={`Post media ${currentMediaIndex + 1}`}
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                ) : (
+                  <CustomVideoPlayer url={post.media[currentMediaIndex].media_url} />
+                )}
+
+                {/* Navigation arrows */}
+                {post.media.length > 1 && (
+                  <>
+                    {currentMediaIndex > 0 && (
+                      <button
+                        onClick={previousMedia}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75"
+                      >
+                        ←
+                      </button>
+                    )}
+                    {currentMediaIndex < post.media.length - 1 && (
+                      <button
+                        onClick={nextMedia}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75"
+                      >
+                        →
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Media indicators */}
+              {post.media.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {post.media.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 w-2 rounded-full ${
+                        index === currentMediaIndex ? 'bg-blue-500' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Post Actions */}
         <div className="p-4 border-t border-gray-100">

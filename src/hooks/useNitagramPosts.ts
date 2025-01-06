@@ -22,6 +22,20 @@ export function useNitagramPosts() {
           profiles:user_id (
             username,
             avatar_url
+          ),
+          comments (
+            id,
+            content,
+            created_at,
+            profiles:user_id (*)
+          ),
+          likes (user_id),
+          media:post_media (
+            id,
+            media_url,
+            media_type,
+            display_order,
+            created_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -37,39 +51,13 @@ export function useNitagramPosts() {
         return;
       }
 
-      // Then, for each post, get its likes and comments
-      const postsWithDetails = await Promise.all(
-        postsData.map(async (post) => {
-          // Get likes
-          const { data: likes } = await supabase
-            .from('likes')
-            .select('user_id')
-            .eq('post_id', post.id);
+      // Sort media by display_order
+      const postsWithSortedMedia = postsData.map(post => ({
+        ...post,
+        media: post.media?.sort((a, b) => a.display_order - b.display_order)
+      }));
 
-          // Get comments
-          const { data: comments } = await supabase
-            .from('comments')
-            .select(`
-              *,
-              profiles:user_id (
-                username,
-                avatar_url
-              )
-            `)
-            .eq('post_id', post.id)
-            .order('created_at', { ascending: true });
-
-          return {
-            ...post,
-            likes: likes || [],
-            likes_count: likes?.length || 0,
-            comments: comments || [],
-            comments_count: comments?.length || 0
-          };
-        })
-      );
-
-      setPosts(postsWithDetails);
+      setPosts(postsWithSortedMedia);
     } catch (error) {
       console.error('Error in fetchPosts:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
@@ -78,90 +66,105 @@ export function useNitagramPosts() {
     }
   }, []);
 
-  const createPost = async (content: string, mediaFile?: File) => {
+  const createPost = async (content: string, mediaFiles: File[]) => {
     try {
       if (!user) {
         throw new Error('User must be logged in to create a post');
       }
 
-      let mediaUrl = null;
-      let mediaType = null;
-
-      // Upload media if provided
-      if (mediaFile) {
-        const fileExt = mediaFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
-
-        const { error: uploadError, data } = await supabase.storage
-          .from('nitagram-media')
-          .upload(filePath, mediaFile);
-
-        if (uploadError) {
-          console.error('Error uploading file:', uploadError);
-          throw uploadError;
-        }
-
-        const { data: urlData } = supabase.storage
-          .from('nitagram-media')
-          .getPublicUrl(filePath);
-
-        mediaUrl = urlData.publicUrl;
-        mediaType = mediaFile.type.startsWith('image/') ? 'image' : 'video';
-      }
-
-      // Create the post
+      // Create post first
       const { data: post, error: postError } = await supabase
         .from('posts')
-        .insert([
-          {
-            user_id: user.id,
-            content,
-            media_url: mediaUrl,
-            media_type: mediaType,
-          },
-        ])
+        .insert([{ user_id: user.id, content }])
+        .select()
+        .single();
+
+      if (postError) throw postError;
+
+      // Upload media files and create post_media entries
+      const mediaPromises = mediaFiles.map(async (file, index) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${post.id}/${index}-${Math.random()}.${fileExt}`;
+        const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+
+        const { error: uploadError } = await supabase.storage
+          .from('nitagram-media')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: mediaUrl } = supabase.storage
+          .from('nitagram-media')
+          .getPublicUrl(fileName);
+
+        return {
+          post_id: post.id,
+          media_url: mediaUrl.publicUrl,
+          media_type: mediaType,
+          display_order: index
+        };
+      });
+
+      const mediaResults = await Promise.all(mediaPromises);
+
+      // Create post_media entries
+      if (mediaResults.length > 0) {
+        const { error: mediaError } = await supabase
+          .from('post_media')
+          .insert(mediaResults);
+
+        if (mediaError) throw mediaError;
+      }
+
+      // Fetch the updated post with all relations
+      const { data: updatedPost, error: fetchError } = await supabase
+        .from('posts')
         .select(`
           *,
           profiles:user_id (
             username,
             avatar_url
+          ),
+          comments (
+            id,
+            content,
+            created_at,
+            profiles:user_id (*)
+          ),
+          likes (user_id),
+          media:post_media (
+            id,
+            media_url,
+            media_type,
+            display_order,
+            created_at
           )
         `)
+        .eq('id', post.id)
         .single();
 
-      if (postError) {
-        console.error('Error creating post:', postError);
-        throw postError;
-      }
+      if (fetchError) throw fetchError;
 
-      // Add the new post to the state with empty likes and comments
-      setPosts((prevPosts) => [{
-        ...post,
-        likes: [],
-        likes_count: 0,
-        comments: [],
-        comments_count: 0
-      }, ...prevPosts]);
-
+      setPosts(prevPosts => [updatedPost, ...prevPosts]);
     } catch (error) {
       console.error('Error in createPost:', error);
       throw error;
     }
   };
 
-  const deletePost = async (postId: string, userId: string) => {
+  const deletePost = async (postId: string) => {
     try {
       if (!user) return;
 
+      // Delete post (this will cascade delete media entries)
       const { error } = await supabase
         .from('posts')
         .delete()
-        .match({ id: postId });
+        .eq('id', postId);
 
       if (error) throw error;
 
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
@@ -184,12 +187,12 @@ export function useNitagramPosts() {
           .delete()
           .match({ user_id: user.id, post_id: postId });
 
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
+        setPosts(prevPosts =>
+          prevPosts.map(post =>
             post.id === postId
               ? {
                   ...post,
-                  likes: post.likes?.filter((like) => like.user_id !== user.id) || [],
+                  likes: post.likes?.filter(like => like.user_id !== user.id) || [],
                   likes_count: Math.max(0, (post.likes_count || 1) - 1),
                 }
               : post
@@ -201,8 +204,8 @@ export function useNitagramPosts() {
           .from('likes')
           .insert({ user_id: user.id, post_id: postId });
 
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
+        setPosts(prevPosts =>
+          prevPosts.map(post =>
             post.id === postId
               ? {
                   ...post,
@@ -240,8 +243,8 @@ export function useNitagramPosts() {
 
       if (commentError) throw commentError;
 
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
           post.id === postId
             ? {
                 ...post,

@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Image, Link2, Send, Loader2 } from 'lucide-react';
+import { X, Image, Link2, Send, Loader2, Trash2 } from 'lucide-react';
+
+interface MediaFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'video';
+}
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onCreatePost: (content: string, mediaFile?: File) => Promise<void>;
+  onCreatePost: (content: string, mediaFiles: File[]) => Promise<void>;
 }
 
 const spaces = [
@@ -20,17 +26,25 @@ const spaces = [
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onCreatePost }) => {
   const [content, setContent] = useState('');
   const [selectedSpace, setSelectedSpace] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    
+    // Check if adding these files would exceed the limit
+    if (selectedMedia.length + files.length > 10) {
+      setError('Maximum 10 files allowed');
+      return;
+    }
+
+    const newMediaFiles: MediaFile[] = [];
+
+    files.forEach(file => {
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB');
+        setError('Each file must be less than 10MB');
         return;
       }
 
@@ -40,20 +54,27 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onCreatePost
         return;
       }
 
-      setSelectedMedia(file);
-      setError(null);
+      const type = file.type.startsWith('image/') ? 'image' : 'video';
+      const preview = type === 'image' 
+        ? URL.createObjectURL(file)
+        : URL.createObjectURL(file);
 
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setMediaPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // For video, we can use the video URL
-        setMediaPreview(URL.createObjectURL(file));
-      }
-    }
+      newMediaFiles.push({
+        file,
+        preview,
+        type
+      });
+    });
+
+    setSelectedMedia([...selectedMedia, ...newMediaFiles]);
+    setError(null);
+  };
+
+  const removeMedia = (index: number) => {
+    const newMedia = [...selectedMedia];
+    URL.revokeObjectURL(newMedia[index].preview);
+    newMedia.splice(index, 1);
+    setSelectedMedia(newMedia);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +85,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onCreatePost
     setError(null);
 
     try {
-      await onCreatePost(content.trim(), selectedMedia || undefined);
+      await onCreatePost(content.trim(), selectedMedia.map(m => m.file));
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create post');
@@ -88,7 +109,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onCreatePost
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-semibold">Create Post</h2>
           <motion.button
@@ -102,105 +122,80 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onCreatePost
           </motion.button>
         </div>
 
-        {/* Modal Content */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <textarea
-              placeholder="What's on your mind?"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows={4}
-              disabled={isSubmitting}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="p-4">
+          <textarea
+            className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={4}
+            placeholder="What's on your mind?"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            disabled={isSubmitting}
+          />
 
-          {/* Media Preview */}
-          {mediaPreview && (
-            <div className="relative">
-              {selectedMedia?.type.startsWith('image/') ? (
-                <img
-                  src={mediaPreview}
-                  alt="Preview"
-                  className="max-h-60 rounded-lg object-cover"
-                />
-              ) : (
-                <video
-                  src={mediaPreview}
-                  className="max-h-60 rounded-lg"
-                  controls
-                />
-              )}
-              <motion.button
-                type="button"
-                onClick={() => {
-                  setSelectedMedia(null);
-                  setMediaPreview(null);
-                }}
-                className="absolute top-2 right-2 p-1 rounded-full bg-white shadow-md"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                disabled={isSubmitting}
-              >
-                <X className="h-4 w-4" />
-              </motion.button>
+          {/* Media Preview Grid */}
+          {selectedMedia.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+              {selectedMedia.map((media, index) => (
+                <div key={index} className="relative group">
+                  {media.type === 'image' ? (
+                    <img
+                      src={media.preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <video
+                      src={media.preview}
+                      className="w-full h-40 object-cover rounded-lg"
+                      controls
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeMedia(index)}
+                    className="absolute top-2 right-2 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
           {error && (
-            <div className="text-red-500 text-sm">
-              {error}
-            </div>
+            <p className="text-red-500 text-sm mt-2">{error}</p>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between border-t pt-4">
-            <div className="flex space-x-2">
-              <label className="cursor-pointer p-2 hover:bg-gray-100 rounded-full">
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex gap-4">
+              <label className="cursor-pointer">
                 <input
                   type="file"
                   accept="image/*,video/*"
-                  onChange={handleMediaChange}
+                  multiple
                   className="hidden"
+                  onChange={handleMediaChange}
                   disabled={isSubmitting}
                 />
-                <Image className="h-6 w-6 text-gray-600" />
+                <div className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+                  <Image className="h-5 w-5" />
+                  <span>Add Media</span>
+                </div>
               </label>
             </div>
 
-            <div className="flex space-x-3">
-              <motion.button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </motion.button>
-              <motion.button
-                type="submit"
-                className={`px-4 py-2 bg-blue-900 text-white rounded-lg flex items-center space-x-2 ${
-                  isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-blue-800'
-                }`}
-                whileHover={!isSubmitting ? { scale: 1.05 } : {}}
-                whileTap={!isSubmitting ? { scale: 0.95 } : {}}
-                disabled={isSubmitting || !content.trim()}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Posting...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-5 w-5" />
-                    <span>Post</span>
-                  </>
-                )}
-              </motion.button>
-            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600 disabled:opacity-50"
+              disabled={isSubmitting || !content.trim()}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+              Post
+            </button>
           </div>
         </form>
       </motion.div>

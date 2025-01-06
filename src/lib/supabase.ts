@@ -27,15 +27,23 @@ export interface Post {
   id: string;
   user_id: string;
   content: string;
-  media_url: string | null;
-  media_type: 'image' | 'video' | null;
-  created_at: string;
   space?: string;
+  likes_count: number;
+  comments_count: number;
+  created_at: string;
+  media?: PostMedia[];
   profiles?: Profile;
-  likes?: { user_id: string }[];
-  likes_count?: number;
   comments?: Comment[];
-  comments_count?: number;
+  likes?: Like[];
+}
+
+export interface PostMedia {
+  id: string;
+  post_id: string;
+  media_url: string;
+  media_type: 'image' | 'video';
+  display_order: number;
+  created_at: string;
 }
 
 export interface Comment {

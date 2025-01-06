@@ -15,11 +15,18 @@ create table if not exists posts (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) on delete cascade not null,
   content text not null,
-  media_url text,
-  media_type text check (media_type in ('image', 'video')),
   space text,
   likes_count integer default 0,
   comments_count integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create table if not exists post_media (
+  id uuid default uuid_generate_v4() primary key,
+  post_id uuid references posts(id) on delete cascade not null,
+  media_url text not null,
+  media_type text check (media_type in ('image', 'video')),
+  display_order integer not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -51,6 +58,7 @@ create table if not exists newsletters (
 -- Enable RLS
 alter table profiles enable row level security;
 alter table posts enable row level security;
+alter table post_media enable row level security;
 alter table comments enable row level security;
 alter table likes enable row level security;
 alter table newsletters enable row level security;
@@ -127,6 +135,28 @@ CREATE POLICY "Users can delete their own posts"
 ON posts FOR DELETE
 TO authenticated
 USING (auth.uid() = user_id);
+
+-- Create policies for post_media
+CREATE POLICY "Public can view post media"
+ON post_media FOR SELECT
+TO public
+USING (true);
+
+CREATE POLICY "Authenticated users can create post media"
+ON post_media FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = (SELECT user_id FROM posts WHERE id = post_media.post_id));
+
+CREATE POLICY "Users can update their own post media"
+ON post_media FOR UPDATE
+TO authenticated
+USING (auth.uid() = (SELECT user_id FROM posts WHERE id = post_media.post_id))
+WITH CHECK (auth.uid() = (SELECT user_id FROM posts WHERE id = post_media.post_id));
+
+CREATE POLICY "Users can delete their own post media"
+ON post_media FOR DELETE
+TO authenticated
+USING (auth.uid() = (SELECT user_id FROM posts WHERE id = post_media.post_id));
 
 -- Create policies for comments
 CREATE POLICY "Public can view comments"
