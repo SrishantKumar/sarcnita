@@ -14,7 +14,6 @@ export function useNitagramPosts() {
       setLoading(true);
       setError(null);
 
-      // First, get all posts with their basic info
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
         .select(`
@@ -27,9 +26,14 @@ export function useNitagramPosts() {
             id,
             content,
             created_at,
-            profiles:user_id (*)
+            profiles:user_id (
+              username,
+              avatar_url
+            )
           ),
-          likes (user_id),
+          likes (
+            user_id
+          ),
           media:post_media (
             id,
             media_url,
@@ -51,13 +55,17 @@ export function useNitagramPosts() {
         return;
       }
 
-      // Sort media by display_order
-      const postsWithSortedMedia = postsData.map(post => ({
+      // Process posts to include correct likes count and media order
+      const processedPosts = postsData.map(post => ({
         ...post,
-        media: post.media?.sort((a, b) => a.display_order - b.display_order)
+        likes: post.likes || [],
+        likes_count: post.likes?.length || 0,
+        comments: post.comments || [],
+        comments_count: post.comments?.length || 0,
+        media: post.media?.sort((a, b) => a.display_order - b.display_order) || []
       }));
 
-      setPosts(postsWithSortedMedia);
+      setPosts(processedPosts);
     } catch (error) {
       console.error('Error in fetchPosts:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
@@ -75,7 +83,12 @@ export function useNitagramPosts() {
       // Create post first
       const { data: post, error: postError } = await supabase
         .from('posts')
-        .insert([{ user_id: user.id, content }])
+        .insert([{ 
+          user_id: user.id, 
+          content,
+          likes_count: 0,
+          comments_count: 0
+        }])
         .select()
         .single();
 
@@ -129,9 +142,14 @@ export function useNitagramPosts() {
             id,
             content,
             created_at,
-            profiles:user_id (*)
+            profiles:user_id (
+              username,
+              avatar_url
+            )
           ),
-          likes (user_id),
+          likes (
+            user_id
+          ),
           media:post_media (
             id,
             media_url,
@@ -145,7 +163,17 @@ export function useNitagramPosts() {
 
       if (fetchError) throw fetchError;
 
-      setPosts(prevPosts => [updatedPost, ...prevPosts]);
+      // Process the post before adding it to state
+      const processedPost = {
+        ...updatedPost,
+        likes: updatedPost.likes || [],
+        likes_count: updatedPost.likes?.length || 0,
+        comments: updatedPost.comments || [],
+        comments_count: updatedPost.comments?.length || 0,
+        media: updatedPost.media?.sort((a, b) => a.display_order - b.display_order) || []
+      };
+
+      setPosts(prevPosts => [processedPost, ...prevPosts]);
     } catch (error) {
       console.error('Error in createPost:', error);
       throw error;
@@ -167,6 +195,7 @@ export function useNitagramPosts() {
       setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
+      throw error;
     }
   };
 
@@ -182,10 +211,12 @@ export function useNitagramPosts() {
 
       if (existingLike) {
         // Unlike
-        await supabase
+        const { error: deleteError } = await supabase
           .from('likes')
           .delete()
           .match({ user_id: user.id, post_id: postId });
+
+        if (deleteError) throw deleteError;
 
         setPosts(prevPosts =>
           prevPosts.map(post =>
@@ -193,16 +224,18 @@ export function useNitagramPosts() {
               ? {
                   ...post,
                   likes: post.likes?.filter(like => like.user_id !== user.id) || [],
-                  likes_count: Math.max(0, (post.likes_count || 1) - 1),
+                  likes_count: Math.max(0, post.likes_count - 1)
                 }
               : post
           )
         );
       } else {
         // Like
-        await supabase
+        const { error: insertError } = await supabase
           .from('likes')
           .insert({ user_id: user.id, post_id: postId });
+
+        if (insertError) throw insertError;
 
         setPosts(prevPosts =>
           prevPosts.map(post =>
@@ -210,7 +243,7 @@ export function useNitagramPosts() {
               ? {
                   ...post,
                   likes: [...(post.likes || []), { user_id: user.id }],
-                  likes_count: (post.likes_count || 0) + 1,
+                  likes_count: (post.likes_count || 0) + 1
                 }
               : post
           )
@@ -218,6 +251,8 @@ export function useNitagramPosts() {
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Refresh the posts to ensure consistency
+      fetchPosts();
     }
   };
 
@@ -249,27 +284,42 @@ export function useNitagramPosts() {
             ? {
                 ...post,
                 comments: [...(post.comments || []), comment],
-                comments_count: (post.comments_count || 0) + 1,
+                comments_count: (post.comments_count || 0) + 1
               }
             : post
         )
       );
     } catch (error) {
       console.error('Error adding comment:', error);
+      // Refresh the posts to ensure consistency
+      fetchPosts();
     }
   };
 
-  // Set up real-time subscription for posts
+  // Set up real-time subscriptions
   useEffect(() => {
-    const postsSubscription = supabase
-      .channel('posts-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-        fetchPosts();
-      })
+    const postsChannel = supabase.channel('posts-changes');
+    
+    // Subscribe to posts changes
+    postsChannel
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'posts' }, 
+        fetchPosts
+      )
+      // Subscribe to likes changes
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'likes' },
+        fetchPosts
+      )
+      // Subscribe to comments changes
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'comments' },
+        fetchPosts
+      )
       .subscribe();
 
     return () => {
-      postsSubscription.unsubscribe();
+      postsChannel.unsubscribe();
     };
   }, [fetchPosts]);
 
