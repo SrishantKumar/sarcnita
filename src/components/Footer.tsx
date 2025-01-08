@@ -197,6 +197,12 @@ const Footer: React.FC = () => {
           >
             {new Date().getFullYear()} Student Alumni Relations Cell. All rights reserved.
           </motion.p>
+          <motion.p 
+            className="text-center text-sm text-gray-400 mt-2"
+            whileHover={{ scale: 1.05 }}
+          >
+            Design & Build By <a href="http://sochworks.netlify.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white">SochWorks Studios</a>
+          </motion.p>
         </motion.div>
       </div>
     </motion.footer>
